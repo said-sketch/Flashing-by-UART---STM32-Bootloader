@@ -1,0 +1,20 @@
+22:49:29 **** Incremental Build of configuration Debug for project bootloader_uart ****
+make -j8 all 
+arm-none-eabi-gcc "../Core/Src/flash_if.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F411xE -c -I../Core/Inc -I../Drivers/STM32F4xx_HAL_Driver/Inc -I../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -MMD -MP -MF"Core/Src/flash_if.d" -MT"Core/Src/flash_if.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "Core/Src/flash_if.o"
+arm-none-eabi-gcc -o "bootloader_uart.elf" @"objects.list"   -mcpu=cortex-m4 -T"C:\Users\HP\Documents\work_space\Flashing_by_UART\bootloader_uart\STM32F411RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="bootloader_uart.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Finished building target: bootloader_uart.elf
+ 
+arm-none-eabi-objdump -h -S  bootloader_uart.elf  > "bootloader_uart.list"
+arm-none-eabi-objcopy  -O binary  bootloader_uart.elf  "bootloader_uart.bin"
+arm-none-eabi-size   bootloader_uart.elf 
+   text	   data	    bss	    dec	    hex	filename
+  10608	     28	   2188	  12824	   3218	bootloader_uart.elf
+Finished building: default.size.stdout
+ 
+Finished building: bootloader_uart.bin
+ 
+Finished building: bootloader_uart.list
+ 
+
+22:49:30 Build Finished. 0 errors, 0 warnings. (took 747ms)
+
