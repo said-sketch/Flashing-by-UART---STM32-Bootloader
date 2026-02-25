@@ -102,7 +102,7 @@ int main(void)
   while (1)
   {
 
-	    if (HAL_UART_Receive(&huart2, &rx, 1, 100) == HAL_OK)
+	    if (HAL_UART_Receive(&huart2, &rx, 1, 1000) == HAL_OK)
 	    {
 	        if (rx == 'T')
 	        {
@@ -110,11 +110,6 @@ int main(void)
 	        }
 	    }
 
-	    else
-	    {
-	        // do nothing
-
-	    }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
