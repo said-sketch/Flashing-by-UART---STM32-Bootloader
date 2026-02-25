@@ -44,8 +44,10 @@
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-uint8_t rx;
+uint8_t rx = 0;
 char *msg = "APPLICATION KHADAMA\r\n";
+char *cmd = "WRONG CMD SEND T\r\n";
+uint8_t ack = 0x79;
 
 /* USER CODE END PV */
 
@@ -100,20 +102,18 @@ int main(void)
   while (1)
   {
 
-	    if (HAL_UART_Receive(&huart2, &rx, 1, HAL_MAX_DELAY) == HAL_OK)
+	    if (HAL_UART_Receive(&huart2, &rx, 1, 100) == HAL_OK)
 	    {
-	        // Debug: confirm reception
-	        HAL_UART_Transmit(&huart2, (uint8_t*)"RX\r\n", 4, HAL_MAX_DELAY);
-
-	        if (rx == 'F')
+	        if (rx == 'T')
 	        {
-	            HAL_UART_Transmit(&huart2, (uint8_t*)"Flash received\r\n", 17, HAL_MAX_DELAY);
-
-	            uint8_t ack = 0x79;
-	            HAL_UART_Transmit(&huart2, &ack, 1, HAL_MAX_DELAY);
-
-	            // Continue flashing logic...
+	            HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
 	        }
+	    }
+
+	    else
+	    {
+	        // do nothing
+
 	    }
     /* USER CODE END WHILE */
 
