@@ -1,5 +1,5 @@
-flash_if.c:15:17:Flash_GetSector	16	static
-flash_if.c:28:16:Flash_Erase	56	static
-flash_if.c:55:16:Flash_Write	40	static
-flash_if.c:88:16:Flash_Read	32	static
-flash_if.c:100:6:Boot_JumpToApplication	32	static,ignoring_inline_asm
+flash_if.c:16:17:Flash_GetSector	16	static
+flash_if.c:29:16:Flash_Erase	56	static
+flash_if.c:56:16:Flash_Write	40	static
+flash_if.c:89:16:Flash_Read	32	static
+flash_if.c:101:6:Boot_JumpToApplication	24	static,ignoring_inline_asm

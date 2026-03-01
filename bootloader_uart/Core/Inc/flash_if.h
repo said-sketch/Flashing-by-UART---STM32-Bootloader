@@ -12,7 +12,7 @@
 #include "stm32f4xx_hal.h"
 
 /* ================= FLASH LAYOUT ================= */
-#define APP_ADDRESS 0x08020000
+#define APP_ADDRESS 0x08020000UL
 /* ================= STATUS ================= */
 typedef enum
 {

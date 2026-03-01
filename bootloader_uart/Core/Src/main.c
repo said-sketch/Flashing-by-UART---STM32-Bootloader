@@ -23,6 +23,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "string.h"
+#include "stdio.h"
 #include "flash_if.h"
 /* USER CODE END Includes */
 
@@ -105,31 +106,29 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-      // Wait for 'F' ONLY
+      // Wait for 'F' OR 'J' ONLY
 	  do {
 	      HAL_UART_Receive(&huart2, &rx, 1, HAL_MAX_DELAY);
 	  } while (rx != 'F' && rx != 'J');
       if (rx == 'J')
       {
+    	  HAL_UART_Transmit(&huart2, &ack, 1, HAL_MAX_DELAY);
+    	  HAL_Delay(50); // give time to PC
           Boot_JumpToApplication(APP_ADDRESS);
-          continue; // safety
       }
-      uint8_t ack = 0x79;
       HAL_UART_Transmit(&huart2, &ack, 1, HAL_MAX_DELAY);
       // ===== FLASH MODE =====
       Flash_Erase(APP_ADDRESS);
       HAL_UART_Transmit(&huart2, &ack, 1, HAL_MAX_DELAY);
 
       uint32_t address = APP_ADDRESS;
+      uint8_t size_buf[2];
 
       while (1)
       {
-          uint8_t size_buf[2];
-
           // ===== RECEIVE SIZE =====
           UART_ReadExact(&huart2, size_buf, 2);
-          uint16_t size = (size_buf[0] << 8) | size_buf[1];
-
+          uint16_t size = size_buf[0] | (size_buf[1] << 8); // LITTLE-ENDIAN
           // ===== END =====
           if (size == 0xFFFF)
           {
@@ -167,7 +166,6 @@ int main(void)
 
       // ===== DONE =====
       HAL_UART_Transmit(&huart2, &ack, 1, HAL_MAX_DELAY);
-      HAL_Delay(100);
       Boot_JumpToApplication(APP_ADDRESS);
   }
     /* USER CODE END WHILE */

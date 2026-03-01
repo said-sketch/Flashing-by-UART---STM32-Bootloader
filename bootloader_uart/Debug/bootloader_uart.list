@@ -27,23 +27,23 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   ALLOC
  11 .ARM.attributes 00000030  00000000  00000000  00020014  2**0
                   CONTENTS, READONLY
- 12 .debug_info   00009a1d  00000000  00000000  00020044  2**0
+ 12 .debug_info   000099dc  00000000  00000000  00020044  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 13 .debug_abbrev 00001abf  00000000  00000000  00029a61  2**0
+ 13 .debug_abbrev 00001a81  00000000  00000000  00029a20  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 14 .debug_aranges 000007b8  00000000  00000000  0002b520  2**3
+ 14 .debug_aranges 000007b8  00000000  00000000  0002b4a8  2**3
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 15 .debug_ranges 00000738  00000000  00000000  0002bcd8  2**3
+ 15 .debug_ranges 00000750  00000000  00000000  0002bc60  2**3
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 16 .debug_macro  00015574  00000000  00000000  0002c410  2**0
+ 16 .debug_macro  000159da  00000000  00000000  0002c3b0  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 17 .debug_line   0000946e  00000000  00000000  00041984  2**0
+ 17 .debug_line   00009516  00000000  00000000  00041d8a  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 18 .debug_str    000850d2  00000000  00000000  0004adf2  2**0
+ 18 .debug_str    00085fe4  00000000  00000000  0004b2a0  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 19 .comment      00000053  00000000  00000000  000cfec4  2**0
+ 19 .comment      00000053  00000000  00000000  000d1284  2**0
                   CONTENTS, READONLY
- 20 .debug_frame  00001e64  00000000  00000000  000cff18  2**2
+ 20 .debug_frame  00001e64  00000000  00000000  000d12d8  2**2
                   CONTENTS, READONLY, DEBUGGING, OCTETS
 
 Disassembly of section .text:
@@ -361,8 +361,8 @@ Disassembly of section .text:
  80004de:	bf00      	nop
 
 080004e0 <Flash_GetSector>:
-#include "stm32f4xx_hal.h"
 #include "flash_if.h"
+
 
 /* ================= INTERNAL HELPER ================= */
 static uint32_t Flash_GetSector(uint32_t address)
@@ -626,325 +626,317 @@ FLASH_Status_t Flash_Write(uint32_t address, uint8_t *data, uint32_t length)
 08000678 <Boot_JumpToApplication>:
 /* ================= Jump to app function ================= */
 
-typedef void (*pFunction)(void);
+typedef void(*pFunction)(void);
 
 void Boot_JumpToApplication(uint32_t app_address)
 {
  8000678:	b580      	push	{r7, lr}
- 800067a:	b086      	sub	sp, #24
+ 800067a:	b084      	sub	sp, #16
  800067c:	af00      	add	r7, sp, #0
  800067e:	6078      	str	r0, [r7, #4]
-    uint32_t app_stack = *(__IO uint32_t*) app_address;
- 8000680:	687b      	ldr	r3, [r7, #4]
- 8000682:	681b      	ldr	r3, [r3, #0]
- 8000684:	617b      	str	r3, [r7, #20]
     uint32_t app_reset = *(__IO uint32_t*) (app_address + 4);
- 8000686:	687b      	ldr	r3, [r7, #4]
- 8000688:	3304      	adds	r3, #4
- 800068a:	681b      	ldr	r3, [r3, #0]
- 800068c:	613b      	str	r3, [r7, #16]
-
-    pFunction app_entry = (pFunction)app_reset;
- 800068e:	693b      	ldr	r3, [r7, #16]
- 8000690:	60fb      	str	r3, [r7, #12]
+ 8000680:	687b      	ldr	r3, [r7, #4]
+ 8000682:	3304      	adds	r3, #4
+ 8000684:	681b      	ldr	r3, [r3, #0]
+ 8000686:	60fb      	str	r3, [r7, #12]
   \details Disables IRQ interrupts by setting the I-bit in the CPSR.
            Can only be executed in Privileged modes.
  */
 __STATIC_FORCEINLINE void __disable_irq(void)
 {
   __ASM volatile ("cpsid i" : : : "memory");
- 8000692:	b672      	cpsid	i
+ 8000688:	b672      	cpsid	i
 }
- 8000694:	bf00      	nop
+ 800068a:	bf00      	nop
+
 
     __disable_irq();
-
-    // Stop SysTick
     SysTick->CTRL = 0;
- 8000696:	4b0f      	ldr	r3, [pc, #60]	; (80006d4 <Boot_JumpToApplication+0x5c>)
- 8000698:	2200      	movs	r2, #0
- 800069a:	601a      	str	r2, [r3, #0]
+ 800068c:	4b0e      	ldr	r3, [pc, #56]	; (80006c8 <Boot_JumpToApplication+0x50>)
+ 800068e:	2200      	movs	r2, #0
+ 8000690:	601a      	str	r2, [r3, #0]
     SysTick->LOAD = 0;
- 800069c:	4b0d      	ldr	r3, [pc, #52]	; (80006d4 <Boot_JumpToApplication+0x5c>)
- 800069e:	2200      	movs	r2, #0
- 80006a0:	605a      	str	r2, [r3, #4]
+ 8000692:	4b0d      	ldr	r3, [pc, #52]	; (80006c8 <Boot_JumpToApplication+0x50>)
+ 8000694:	2200      	movs	r2, #0
+ 8000696:	605a      	str	r2, [r3, #4]
     SysTick->VAL  = 0;
- 80006a2:	4b0c      	ldr	r3, [pc, #48]	; (80006d4 <Boot_JumpToApplication+0x5c>)
- 80006a4:	2200      	movs	r2, #0
- 80006a6:	609a      	str	r2, [r3, #8]
- 80006a8:	697b      	ldr	r3, [r7, #20]
- 80006aa:	60bb      	str	r3, [r7, #8]
-  \details Assigns the given value to the Main Stack Pointer (MSP).
-  \param [in]    topOfMainStack  Main Stack Pointer value to set
- */
-__STATIC_FORCEINLINE void __set_MSP(uint32_t topOfMainStack)
-{
-  __ASM volatile ("MSR msp, %0" : : "r" (topOfMainStack) : );
- 80006ac:	68bb      	ldr	r3, [r7, #8]
- 80006ae:	f383 8808 	msr	MSP, r3
-}
- 80006b2:	bf00      	nop
+ 8000698:	4b0b      	ldr	r3, [pc, #44]	; (80006c8 <Boot_JumpToApplication+0x50>)
+ 800069a:	2200      	movs	r2, #0
+ 800069c:	609a      	str	r2, [r3, #8]
 
-    // 🔥 VERY IMPORTANT: set MSP
-    __set_MSP(app_stack);
-
-    // Relocate vector table
     SCB->VTOR = app_address;
- 80006b4:	4a08      	ldr	r2, [pc, #32]	; (80006d8 <Boot_JumpToApplication+0x60>)
- 80006b6:	687b      	ldr	r3, [r7, #4]
- 80006b8:	6093      	str	r3, [r2, #8]
+ 800069e:	4a0b      	ldr	r2, [pc, #44]	; (80006cc <Boot_JumpToApplication+0x54>)
+ 80006a0:	687b      	ldr	r3, [r7, #4]
+ 80006a2:	6093      	str	r3, [r2, #8]
   \details Acts as a special kind of Data Memory Barrier.
            It completes when all explicit memory accesses before this instruction complete.
  */
 __STATIC_FORCEINLINE void __DSB(void)
 {
   __ASM volatile ("dsb 0xF":::"memory");
- 80006ba:	f3bf 8f4f 	dsb	sy
+ 80006a4:	f3bf 8f4f 	dsb	sy
 }
- 80006be:	bf00      	nop
+ 80006a8:	bf00      	nop
+  \details Ensures the apparent order of the explicit memory operations before
+           and after the instruction, without ensuring their completion.
+ */
+__STATIC_FORCEINLINE void __DMB(void)
+{
+  __ASM volatile ("dmb 0xF":::"memory");
+ 80006aa:	f3bf 8f5f 	dmb	sy
+}
+ 80006ae:	bf00      	nop
   __ASM volatile ("isb 0xF":::"memory");
- 80006c0:	f3bf 8f6f 	isb	sy
+ 80006b0:	f3bf 8f6f 	isb	sy
 }
- 80006c4:	bf00      	nop
+ 80006b4:	bf00      	nop
 
     __DSB();
+    __DMB();
     __ISB();
 
-    app_entry();
- 80006c6:	68fb      	ldr	r3, [r7, #12]
- 80006c8:	4798      	blx	r3
+    pFunction app_entry = (pFunction)app_reset;
+ 80006b6:	68fb      	ldr	r3, [r7, #12]
+ 80006b8:	60bb      	str	r3, [r7, #8]
+    app_entry(); // jump
+ 80006ba:	68bb      	ldr	r3, [r7, #8]
+ 80006bc:	4798      	blx	r3
 }
- 80006ca:	bf00      	nop
- 80006cc:	3718      	adds	r7, #24
- 80006ce:	46bd      	mov	sp, r7
- 80006d0:	bd80      	pop	{r7, pc}
- 80006d2:	bf00      	nop
- 80006d4:	e000e010 	.word	0xe000e010
- 80006d8:	e000ed00 	.word	0xe000ed00
+ 80006be:	bf00      	nop
+ 80006c0:	3710      	adds	r7, #16
+ 80006c2:	46bd      	mov	sp, r7
+ 80006c4:	bd80      	pop	{r7, pc}
+ 80006c6:	bf00      	nop
+ 80006c8:	e000e010 	.word	0xe000e010
+ 80006cc:	e000ed00 	.word	0xe000ed00
 
-080006dc <main>:
+080006d0 <main>:
 /**
   * @brief  The application entry point.
   * @retval int
   */
 int main(void)
 {
- 80006dc:	b590      	push	{r4, r7, lr}
- 80006de:	b085      	sub	sp, #20
- 80006e0:	af00      	add	r7, sp, #0
+ 80006d0:	b590      	push	{r4, r7, lr}
+ 80006d2:	b085      	sub	sp, #20
+ 80006d4:	af00      	add	r7, sp, #0
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
- 80006e2:	f000 fab7 	bl	8000c54 <HAL_Init>
+ 80006d6:	f000 fabd 	bl	8000c54 <HAL_Init>
 
   /* USER CODE BEGIN Init */
   /* USER CODE END Init */
 
   /* Configure the system clock */
   SystemClock_Config();
- 80006e6:	f000 f8b7 	bl	8000858 <SystemClock_Config>
+ 80006da:	f000 f8bd 	bl	8000858 <SystemClock_Config>
 
   /* USER CODE BEGIN SysInit */
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
- 80006ea:	f000 f949 	bl	8000980 <MX_GPIO_Init>
+ 80006de:	f000 f94f 	bl	8000980 <MX_GPIO_Init>
   MX_USART2_UART_Init();
- 80006ee:	f000 f91d 	bl	800092c <MX_USART2_UART_Init>
+ 80006e2:	f000 f923 	bl	800092c <MX_USART2_UART_Init>
   /* USER CODE BEGIN 2 */
 
   HAL_UART_Transmit(&huart2, (uint8_t*)msg, strlen(msg), HAL_MAX_DELAY);
- 80006f2:	4b52      	ldr	r3, [pc, #328]	; (800083c <main+0x160>)
- 80006f4:	681c      	ldr	r4, [r3, #0]
- 80006f6:	4b51      	ldr	r3, [pc, #324]	; (800083c <main+0x160>)
- 80006f8:	681b      	ldr	r3, [r3, #0]
- 80006fa:	4618      	mov	r0, r3
- 80006fc:	f7ff fd6c 	bl	80001d8 <strlen>
- 8000700:	4603      	mov	r3, r0
- 8000702:	b29a      	uxth	r2, r3
- 8000704:	f04f 33ff 	mov.w	r3, #4294967295
- 8000708:	4621      	mov	r1, r4
- 800070a:	484d      	ldr	r0, [pc, #308]	; (8000840 <main+0x164>)
- 800070c:	f001 fd65 	bl	80021da <HAL_UART_Transmit>
+ 80006e6:	4b54      	ldr	r3, [pc, #336]	; (8000838 <main+0x168>)
+ 80006e8:	681c      	ldr	r4, [r3, #0]
+ 80006ea:	4b53      	ldr	r3, [pc, #332]	; (8000838 <main+0x168>)
+ 80006ec:	681b      	ldr	r3, [r3, #0]
+ 80006ee:	4618      	mov	r0, r3
+ 80006f0:	f7ff fd72 	bl	80001d8 <strlen>
+ 80006f4:	4603      	mov	r3, r0
+ 80006f6:	b29a      	uxth	r2, r3
+ 80006f8:	f04f 33ff 	mov.w	r3, #4294967295
+ 80006fc:	4621      	mov	r1, r4
+ 80006fe:	484f      	ldr	r0, [pc, #316]	; (800083c <main+0x16c>)
+ 8000700:	f001 fd6b 	bl	80021da <HAL_UART_Transmit>
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-      // Wait for 'F' ONLY
+      // Wait for 'F' OR 'J' ONLY
 	  do {
 	      HAL_UART_Receive(&huart2, &rx, 1, HAL_MAX_DELAY);
- 8000710:	f04f 33ff 	mov.w	r3, #4294967295
- 8000714:	2201      	movs	r2, #1
- 8000716:	494b      	ldr	r1, [pc, #300]	; (8000844 <main+0x168>)
- 8000718:	4849      	ldr	r0, [pc, #292]	; (8000840 <main+0x164>)
- 800071a:	f001 fdf0 	bl	80022fe <HAL_UART_Receive>
+ 8000704:	f04f 33ff 	mov.w	r3, #4294967295
+ 8000708:	2201      	movs	r2, #1
+ 800070a:	494d      	ldr	r1, [pc, #308]	; (8000840 <main+0x170>)
+ 800070c:	484b      	ldr	r0, [pc, #300]	; (800083c <main+0x16c>)
+ 800070e:	f001 fdf6 	bl	80022fe <HAL_UART_Receive>
 	  } while (rx != 'F' && rx != 'J');
- 800071e:	4b49      	ldr	r3, [pc, #292]	; (8000844 <main+0x168>)
- 8000720:	781b      	ldrb	r3, [r3, #0]
- 8000722:	2b46      	cmp	r3, #70	; 0x46
- 8000724:	d003      	beq.n	800072e <main+0x52>
- 8000726:	4b47      	ldr	r3, [pc, #284]	; (8000844 <main+0x168>)
- 8000728:	781b      	ldrb	r3, [r3, #0]
- 800072a:	2b4a      	cmp	r3, #74	; 0x4a
- 800072c:	d1f0      	bne.n	8000710 <main+0x34>
+ 8000712:	4b4b      	ldr	r3, [pc, #300]	; (8000840 <main+0x170>)
+ 8000714:	781b      	ldrb	r3, [r3, #0]
+ 8000716:	2b46      	cmp	r3, #70	; 0x46
+ 8000718:	d003      	beq.n	8000722 <main+0x52>
+ 800071a:	4b49      	ldr	r3, [pc, #292]	; (8000840 <main+0x170>)
+ 800071c:	781b      	ldrb	r3, [r3, #0]
+ 800071e:	2b4a      	cmp	r3, #74	; 0x4a
+ 8000720:	d1f0      	bne.n	8000704 <main+0x34>
       if (rx == 'J')
- 800072e:	4b45      	ldr	r3, [pc, #276]	; (8000844 <main+0x168>)
- 8000730:	781b      	ldrb	r3, [r3, #0]
- 8000732:	2b4a      	cmp	r3, #74	; 0x4a
- 8000734:	d103      	bne.n	800073e <main+0x62>
+ 8000722:	4b47      	ldr	r3, [pc, #284]	; (8000840 <main+0x170>)
+ 8000724:	781b      	ldrb	r3, [r3, #0]
+ 8000726:	2b4a      	cmp	r3, #74	; 0x4a
+ 8000728:	d10c      	bne.n	8000744 <main+0x74>
       {
+    	  HAL_UART_Transmit(&huart2, &ack, 1, HAL_MAX_DELAY);
+ 800072a:	f04f 33ff 	mov.w	r3, #4294967295
+ 800072e:	2201      	movs	r2, #1
+ 8000730:	4944      	ldr	r1, [pc, #272]	; (8000844 <main+0x174>)
+ 8000732:	4842      	ldr	r0, [pc, #264]	; (800083c <main+0x16c>)
+ 8000734:	f001 fd51 	bl	80021da <HAL_UART_Transmit>
+    	  HAL_Delay(50); // give time to PC
+ 8000738:	2032      	movs	r0, #50	; 0x32
+ 800073a:	f000 fafd 	bl	8000d38 <HAL_Delay>
           Boot_JumpToApplication(APP_ADDRESS);
- 8000736:	4844      	ldr	r0, [pc, #272]	; (8000848 <main+0x16c>)
- 8000738:	f7ff ff9e 	bl	8000678 <Boot_JumpToApplication>
- 800073c:	e7e8      	b.n	8000710 <main+0x34>
-          continue; // safety
+ 800073e:	4842      	ldr	r0, [pc, #264]	; (8000848 <main+0x178>)
+ 8000740:	f7ff ff9a 	bl	8000678 <Boot_JumpToApplication>
       }
-      uint8_t ack = 0x79;
- 800073e:	2379      	movs	r3, #121	; 0x79
- 8000740:	70fb      	strb	r3, [r7, #3]
       HAL_UART_Transmit(&huart2, &ack, 1, HAL_MAX_DELAY);
- 8000742:	1cf9      	adds	r1, r7, #3
  8000744:	f04f 33ff 	mov.w	r3, #4294967295
  8000748:	2201      	movs	r2, #1
- 800074a:	483d      	ldr	r0, [pc, #244]	; (8000840 <main+0x164>)
- 800074c:	f001 fd45 	bl	80021da <HAL_UART_Transmit>
+ 800074a:	493e      	ldr	r1, [pc, #248]	; (8000844 <main+0x174>)
+ 800074c:	483b      	ldr	r0, [pc, #236]	; (800083c <main+0x16c>)
+ 800074e:	f001 fd44 	bl	80021da <HAL_UART_Transmit>
       // ===== FLASH MODE =====
       Flash_Erase(APP_ADDRESS);
- 8000750:	483d      	ldr	r0, [pc, #244]	; (8000848 <main+0x16c>)
- 8000752:	f7ff ff09 	bl	8000568 <Flash_Erase>
+ 8000752:	483d      	ldr	r0, [pc, #244]	; (8000848 <main+0x178>)
+ 8000754:	f7ff ff08 	bl	8000568 <Flash_Erase>
       HAL_UART_Transmit(&huart2, &ack, 1, HAL_MAX_DELAY);
- 8000756:	1cf9      	adds	r1, r7, #3
  8000758:	f04f 33ff 	mov.w	r3, #4294967295
  800075c:	2201      	movs	r2, #1
- 800075e:	4838      	ldr	r0, [pc, #224]	; (8000840 <main+0x164>)
- 8000760:	f001 fd3b 	bl	80021da <HAL_UART_Transmit>
+ 800075e:	4939      	ldr	r1, [pc, #228]	; (8000844 <main+0x174>)
+ 8000760:	4836      	ldr	r0, [pc, #216]	; (800083c <main+0x16c>)
+ 8000762:	f001 fd3a 	bl	80021da <HAL_UART_Transmit>
 
       uint32_t address = APP_ADDRESS;
- 8000764:	4b38      	ldr	r3, [pc, #224]	; (8000848 <main+0x16c>)
- 8000766:	60fb      	str	r3, [r7, #12]
+ 8000766:	4b38      	ldr	r3, [pc, #224]	; (8000848 <main+0x178>)
+ 8000768:	60fb      	str	r3, [r7, #12]
+      uint8_t size_buf[2];
+
       while (1)
       {
-          uint8_t size_buf[2];
-
           // ===== RECEIVE SIZE =====
           UART_ReadExact(&huart2, size_buf, 2);
- 8000768:	463b      	mov	r3, r7
- 800076a:	2202      	movs	r2, #2
- 800076c:	4619      	mov	r1, r3
- 800076e:	4834      	ldr	r0, [pc, #208]	; (8000840 <main+0x164>)
- 8000770:	f000 f974 	bl	8000a5c <UART_ReadExact>
-          uint16_t size = (size_buf[0] << 8) | size_buf[1];
- 8000774:	783b      	ldrb	r3, [r7, #0]
- 8000776:	021b      	lsls	r3, r3, #8
+ 800076a:	463b      	mov	r3, r7
+ 800076c:	2202      	movs	r2, #2
+ 800076e:	4619      	mov	r1, r3
+ 8000770:	4832      	ldr	r0, [pc, #200]	; (800083c <main+0x16c>)
+ 8000772:	f000 f973 	bl	8000a5c <UART_ReadExact>
+          uint16_t size = size_buf[0] | (size_buf[1] << 8); // LITTLE-ENDIAN
+ 8000776:	783b      	ldrb	r3, [r7, #0]
  8000778:	b21a      	sxth	r2, r3
  800077a:	787b      	ldrb	r3, [r7, #1]
- 800077c:	b21b      	sxth	r3, r3
- 800077e:	4313      	orrs	r3, r2
- 8000780:	b21b      	sxth	r3, r3
- 8000782:	817b      	strh	r3, [r7, #10]
-
+ 800077c:	021b      	lsls	r3, r3, #8
+ 800077e:	b21b      	sxth	r3, r3
+ 8000780:	4313      	orrs	r3, r2
+ 8000782:	b21b      	sxth	r3, r3
+ 8000784:	817b      	strh	r3, [r7, #10]
           // ===== END =====
           if (size == 0xFFFF)
- 8000784:	897b      	ldrh	r3, [r7, #10]
- 8000786:	f64f 72ff 	movw	r2, #65535	; 0xffff
- 800078a:	4293      	cmp	r3, r2
- 800078c:	d114      	bne.n	80007b8 <main+0xdc>
+ 8000786:	897b      	ldrh	r3, [r7, #10]
+ 8000788:	f64f 72ff 	movw	r2, #65535	; 0xffff
+ 800078c:	4293      	cmp	r3, r2
+ 800078e:	d112      	bne.n	80007b6 <main+0xe6>
           {
               HAL_UART_Transmit(&huart2, &ack, 1, HAL_MAX_DELAY);
- 800078e:	1cf9      	adds	r1, r7, #3
  8000790:	f04f 33ff 	mov.w	r3, #4294967295
  8000794:	2201      	movs	r2, #1
- 8000796:	482a      	ldr	r0, [pc, #168]	; (8000840 <main+0x164>)
- 8000798:	f001 fd1f 	bl	80021da <HAL_UART_Transmit>
+ 8000796:	492b      	ldr	r1, [pc, #172]	; (8000844 <main+0x174>)
+ 8000798:	4828      	ldr	r0, [pc, #160]	; (800083c <main+0x16c>)
+ 800079a:	f001 fd1e 	bl	80021da <HAL_UART_Transmit>
+              break;
+ 800079e:	bf00      	nop
           // ===== ACK DATA =====
           HAL_UART_Transmit(&huart2, &ack, 1, HAL_MAX_DELAY);
       }
 
       // ===== DONE =====
       HAL_UART_Transmit(&huart2, &ack, 1, HAL_MAX_DELAY);
- 800079c:	1cf9      	adds	r1, r7, #3
- 800079e:	f04f 33ff 	mov.w	r3, #4294967295
- 80007a2:	2201      	movs	r2, #1
- 80007a4:	4826      	ldr	r0, [pc, #152]	; (8000840 <main+0x164>)
- 80007a6:	f001 fd18 	bl	80021da <HAL_UART_Transmit>
-      HAL_Delay(100);
- 80007aa:	2064      	movs	r0, #100	; 0x64
- 80007ac:	f000 fac4 	bl	8000d38 <HAL_Delay>
+ 80007a0:	f04f 33ff 	mov.w	r3, #4294967295
+ 80007a4:	2201      	movs	r2, #1
+ 80007a6:	4927      	ldr	r1, [pc, #156]	; (8000844 <main+0x174>)
+ 80007a8:	4824      	ldr	r0, [pc, #144]	; (800083c <main+0x16c>)
+ 80007aa:	f001 fd16 	bl	80021da <HAL_UART_Transmit>
       Boot_JumpToApplication(APP_ADDRESS);
- 80007b0:	4825      	ldr	r0, [pc, #148]	; (8000848 <main+0x16c>)
- 80007b2:	f7ff ff61 	bl	8000678 <Boot_JumpToApplication>
- 80007b6:	e7ab      	b.n	8000710 <main+0x34>
+ 80007ae:	4826      	ldr	r0, [pc, #152]	; (8000848 <main+0x178>)
+ 80007b0:	f7ff ff62 	bl	8000678 <Boot_JumpToApplication>
+  {
+ 80007b4:	e7a6      	b.n	8000704 <main+0x34>
           if (size > MAX_CHUNK)
- 80007b8:	897b      	ldrh	r3, [r7, #10]
- 80007ba:	f5b3 7f80 	cmp.w	r3, #256	; 0x100
- 80007be:	d907      	bls.n	80007d0 <main+0xf4>
+ 80007b6:	897b      	ldrh	r3, [r7, #10]
+ 80007b8:	f5b3 7f80 	cmp.w	r3, #256	; 0x100
+ 80007bc:	d907      	bls.n	80007ce <main+0xfe>
               HAL_UART_Transmit(&huart2, &err, 1, HAL_MAX_DELAY);
- 80007c0:	f04f 33ff 	mov.w	r3, #4294967295
- 80007c4:	2201      	movs	r2, #1
- 80007c6:	4921      	ldr	r1, [pc, #132]	; (800084c <main+0x170>)
- 80007c8:	481d      	ldr	r0, [pc, #116]	; (8000840 <main+0x164>)
- 80007ca:	f001 fd06 	bl	80021da <HAL_UART_Transmit>
- 80007ce:	e7cb      	b.n	8000768 <main+0x8c>
+ 80007be:	f04f 33ff 	mov.w	r3, #4294967295
+ 80007c2:	2201      	movs	r2, #1
+ 80007c4:	4921      	ldr	r1, [pc, #132]	; (800084c <main+0x17c>)
+ 80007c6:	481d      	ldr	r0, [pc, #116]	; (800083c <main+0x16c>)
+ 80007c8:	f001 fd07 	bl	80021da <HAL_UART_Transmit>
+              continue;
+ 80007cc:	e033      	b.n	8000836 <main+0x166>
           HAL_UART_Transmit(&huart2, &ack, 1, HAL_MAX_DELAY);
- 80007d0:	1cf9      	adds	r1, r7, #3
- 80007d2:	f04f 33ff 	mov.w	r3, #4294967295
- 80007d6:	2201      	movs	r2, #1
- 80007d8:	4819      	ldr	r0, [pc, #100]	; (8000840 <main+0x164>)
- 80007da:	f001 fcfe 	bl	80021da <HAL_UART_Transmit>
+ 80007ce:	f04f 33ff 	mov.w	r3, #4294967295
+ 80007d2:	2201      	movs	r2, #1
+ 80007d4:	491b      	ldr	r1, [pc, #108]	; (8000844 <main+0x174>)
+ 80007d6:	4819      	ldr	r0, [pc, #100]	; (800083c <main+0x16c>)
+ 80007d8:	f001 fcff 	bl	80021da <HAL_UART_Transmit>
           memset(flash_buffer, 0xFF, MAX_CHUNK);
- 80007de:	f44f 7280 	mov.w	r2, #256	; 0x100
- 80007e2:	21ff      	movs	r1, #255	; 0xff
- 80007e4:	481a      	ldr	r0, [pc, #104]	; (8000850 <main+0x174>)
- 80007e6:	f002 f895 	bl	8002914 <memset>
+ 80007dc:	f44f 7280 	mov.w	r2, #256	; 0x100
+ 80007e0:	21ff      	movs	r1, #255	; 0xff
+ 80007e2:	481b      	ldr	r0, [pc, #108]	; (8000850 <main+0x180>)
+ 80007e4:	f002 f896 	bl	8002914 <memset>
           UART_ReadExact(&huart2, flash_buffer, size);
- 80007ea:	897b      	ldrh	r3, [r7, #10]
- 80007ec:	461a      	mov	r2, r3
- 80007ee:	4918      	ldr	r1, [pc, #96]	; (8000850 <main+0x174>)
- 80007f0:	4813      	ldr	r0, [pc, #76]	; (8000840 <main+0x164>)
- 80007f2:	f000 f933 	bl	8000a5c <UART_ReadExact>
+ 80007e8:	897b      	ldrh	r3, [r7, #10]
+ 80007ea:	461a      	mov	r2, r3
+ 80007ec:	4918      	ldr	r1, [pc, #96]	; (8000850 <main+0x180>)
+ 80007ee:	4813      	ldr	r0, [pc, #76]	; (800083c <main+0x16c>)
+ 80007f0:	f000 f934 	bl	8000a5c <UART_ReadExact>
           memset(aligned_buffer, 0xFF, sizeof(aligned_buffer));
- 80007f6:	f44f 7282 	mov.w	r2, #260	; 0x104
- 80007fa:	21ff      	movs	r1, #255	; 0xff
- 80007fc:	4815      	ldr	r0, [pc, #84]	; (8000854 <main+0x178>)
- 80007fe:	f002 f889 	bl	8002914 <memset>
+ 80007f4:	f44f 7282 	mov.w	r2, #260	; 0x104
+ 80007f8:	21ff      	movs	r1, #255	; 0xff
+ 80007fa:	4816      	ldr	r0, [pc, #88]	; (8000854 <main+0x184>)
+ 80007fc:	f002 f88a 	bl	8002914 <memset>
           memcpy(aligned_buffer, flash_buffer, size);
- 8000802:	897b      	ldrh	r3, [r7, #10]
- 8000804:	461a      	mov	r2, r3
- 8000806:	4912      	ldr	r1, [pc, #72]	; (8000850 <main+0x174>)
- 8000808:	4812      	ldr	r0, [pc, #72]	; (8000854 <main+0x178>)
- 800080a:	f002 f875 	bl	80028f8 <memcpy>
+ 8000800:	897b      	ldrh	r3, [r7, #10]
+ 8000802:	461a      	mov	r2, r3
+ 8000804:	4912      	ldr	r1, [pc, #72]	; (8000850 <main+0x180>)
+ 8000806:	4813      	ldr	r0, [pc, #76]	; (8000854 <main+0x184>)
+ 8000808:	f002 f876 	bl	80028f8 <memcpy>
           uint32_t aligned_size = (size + 3) & ~3;
- 800080e:	897b      	ldrh	r3, [r7, #10]
- 8000810:	3303      	adds	r3, #3
- 8000812:	f023 0303 	bic.w	r3, r3, #3
- 8000816:	607b      	str	r3, [r7, #4]
+ 800080c:	897b      	ldrh	r3, [r7, #10]
+ 800080e:	3303      	adds	r3, #3
+ 8000810:	f023 0303 	bic.w	r3, r3, #3
+ 8000814:	607b      	str	r3, [r7, #4]
           Flash_Write(address, aligned_buffer, aligned_size);
- 8000818:	687a      	ldr	r2, [r7, #4]
- 800081a:	490e      	ldr	r1, [pc, #56]	; (8000854 <main+0x178>)
- 800081c:	68f8      	ldr	r0, [r7, #12]
- 800081e:	f7ff fed4 	bl	80005ca <Flash_Write>
+ 8000816:	687a      	ldr	r2, [r7, #4]
+ 8000818:	490e      	ldr	r1, [pc, #56]	; (8000854 <main+0x184>)
+ 800081a:	68f8      	ldr	r0, [r7, #12]
+ 800081c:	f7ff fed5 	bl	80005ca <Flash_Write>
           address += aligned_size;
- 8000822:	68fa      	ldr	r2, [r7, #12]
- 8000824:	687b      	ldr	r3, [r7, #4]
- 8000826:	4413      	add	r3, r2
- 8000828:	60fb      	str	r3, [r7, #12]
+ 8000820:	68fa      	ldr	r2, [r7, #12]
+ 8000822:	687b      	ldr	r3, [r7, #4]
+ 8000824:	4413      	add	r3, r2
+ 8000826:	60fb      	str	r3, [r7, #12]
           HAL_UART_Transmit(&huart2, &ack, 1, HAL_MAX_DELAY);
- 800082a:	1cf9      	adds	r1, r7, #3
- 800082c:	f04f 33ff 	mov.w	r3, #4294967295
- 8000830:	2201      	movs	r2, #1
- 8000832:	4803      	ldr	r0, [pc, #12]	; (8000840 <main+0x164>)
- 8000834:	f001 fcd1 	bl	80021da <HAL_UART_Transmit>
+ 8000828:	f04f 33ff 	mov.w	r3, #4294967295
+ 800082c:	2201      	movs	r2, #1
+ 800082e:	4905      	ldr	r1, [pc, #20]	; (8000844 <main+0x174>)
+ 8000830:	4802      	ldr	r0, [pc, #8]	; (800083c <main+0x16c>)
+ 8000832:	f001 fcd2 	bl	80021da <HAL_UART_Transmit>
       {
- 8000838:	e796      	b.n	8000768 <main+0x8c>
- 800083a:	bf00      	nop
- 800083c:	20000000 	.word	0x20000000
- 8000840:	20000238 	.word	0x20000238
- 8000844:	20000030 	.word	0x20000030
+ 8000836:	e798      	b.n	800076a <main+0x9a>
+ 8000838:	20000000 	.word	0x20000000
+ 800083c:	20000238 	.word	0x20000238
+ 8000840:	20000030 	.word	0x20000030
+ 8000844:	20000004 	.word	0x20000004
  8000848:	08020000 	.word	0x08020000
- 800084c:	20000004 	.word	0x20000004
+ 800084c:	20000005 	.word	0x20000005
  8000850:	20000034 	.word	0x20000034
  8000854:	20000134 	.word	0x20000134
 
@@ -1754,7 +1746,7 @@ LoopFillZerobss:
  8000c2e:	f001 fe3f 	bl	80028b0 <__libc_init_array>
 /* Call the application's entry point.*/
   bl  main
- 8000c32:	f7ff fd53 	bl	80006dc <main>
+ 8000c32:	f7ff fd4d 	bl	80006d0 <main>
   bx  lr    
  8000c36:	4770      	bx	lr
   ldr   sp, =_estack    		 /* set stack pointer */

@@ -1,6 +1,6 @@
-main.c:75:5:main	32	static
-main.c:184:6:SystemClock_Config	88	static
-main.c:229:13:MX_USART2_UART_Init	8	static
-main.c:262:13:MX_GPIO_Init	48	static
-main.c:291:10:UART_ReadExact	32	static
-main.c:309:6:Error_Handler	4	static,ignoring_inline_asm
+main.c:76:5:main	32	static
+main.c:182:6:SystemClock_Config	88	static
+main.c:227:13:MX_USART2_UART_Init	8	static
+main.c:260:13:MX_GPIO_Init	48	static
+main.c:289:10:UART_ReadExact	32	static
+main.c:307:6:Error_Handler	4	static,ignoring_inline_asm
