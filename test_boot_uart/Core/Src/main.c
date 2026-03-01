@@ -92,20 +92,24 @@ int main(void)
   MX_GPIO_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
-
-  HAL_UART_Transmit(&huart2, (uint8_t*)msg, strlen(msg), 1000);
+  HAL_UART_Transmit(&huart2, (uint8_t*)msg, strlen(msg), HAL_MAX_DELAY);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-
-	    if (HAL_UART_Receive(&huart2, &rx, 1, 1000) == HAL_OK)
+	    if (HAL_UART_Receive(&huart2, &rx, 1, HAL_MAX_DELAY) == HAL_OK)
 	    {
 	        if (rx == 'T')
 	        {
 	            HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+	        }
+	        else if (rx == 'R')
+	        {
+	            HAL_UART_Transmit(&huart2, (uint8_t*)"JUMPING TO BOOTLOADER\r\n", 23, 1000);
+	            HAL_Delay(100);
+	            NVIC_SystemReset();  // ← software reset, goes back to bootloader
 	        }
 	    }
 

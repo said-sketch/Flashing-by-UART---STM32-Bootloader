@@ -48,8 +48,6 @@ UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
 static uint8_t rx;
-char *msg = "BOOTLOADER READY\r\n";
-
 uint8_t flash_buffer[MAX_CHUNK];
 uint8_t aligned_buffer[MAX_CHUNK + 4];
 uint8_t ack = 0x79;
@@ -97,9 +95,6 @@ int main(void)
   MX_GPIO_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
-
-  HAL_UART_Transmit(&huart2, (uint8_t*)msg, strlen(msg), HAL_MAX_DELAY);
-
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -113,7 +108,6 @@ int main(void)
       if (rx == 'J')
       {
     	  HAL_UART_Transmit(&huart2, &ack, 1, HAL_MAX_DELAY);
-    	  HAL_Delay(50); // give time to PC
           Boot_JumpToApplication(APP_ADDRESS);
       }
       HAL_UART_Transmit(&huart2, &ack, 1, HAL_MAX_DELAY);
