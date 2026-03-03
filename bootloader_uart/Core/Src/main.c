@@ -19,11 +19,8 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "string.h"
-#include "stdio.h"
 #include "flash_if.h"
 /* USER CODE END Includes */
 
@@ -34,7 +31,6 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define MAX_CHUNK 256
 
 /* USER CODE END PD */
 
@@ -47,11 +43,7 @@
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-static uint8_t rx;
-uint8_t flash_buffer[MAX_CHUNK];
-uint8_t aligned_buffer[MAX_CHUNK + 4];
-uint8_t ack = 0x79;
-uint8_t err = 0x1F;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -59,7 +51,6 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_USART2_UART_Init(void);
 /* USER CODE BEGIN PFP */
-uint32_t UART_ReadExact(UART_HandleTypeDef *huart, uint8_t *buf, uint32_t len);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -95,72 +86,30 @@ int main(void)
   MX_GPIO_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
+  uint8_t rx;
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-      // Wait for 'F' OR 'J' ONLY
-	  do {
-	      HAL_UART_Receive(&huart2, &rx, 1, HAL_MAX_DELAY);
-	  } while (rx != 'F' && rx != 'J');
-      if (rx == 'J')
-      {
-    	  HAL_UART_Transmit(&huart2, &ack, 1, HAL_MAX_DELAY);
-          Boot_JumpToApplication(APP_ADDRESS);
-      }
-      HAL_UART_Transmit(&huart2, &ack, 1, HAL_MAX_DELAY);
-      // ===== FLASH MODE =====
-      Flash_Erase(APP_ADDRESS);
-      HAL_UART_Transmit(&huart2, &ack, 1, HAL_MAX_DELAY);
-
-      uint32_t address = APP_ADDRESS;
-      uint8_t size_buf[2];
-
-      while (1)
-      {
-          // ===== RECEIVE SIZE =====
-          UART_ReadExact(&huart2, size_buf, 2);
-          uint16_t size = size_buf[0] | (size_buf[1] << 8); // LITTLE-ENDIAN
-          // ===== END =====
-          if (size == 0xFFFF)
-          {
-              HAL_UART_Transmit(&huart2, &ack, 1, HAL_MAX_DELAY);
-              break;
-          }
-
-          // ===== SIZE CHECK =====
-          if (size > MAX_CHUNK)
-          {
-              HAL_UART_Transmit(&huart2, &err, 1, HAL_MAX_DELAY);
-              continue;
-          }
-
-          // ===== ACK SIZE =====
-          HAL_UART_Transmit(&huart2, &ack, 1, HAL_MAX_DELAY);
-
-          // ===== RECEIVE DATA =====
-          memset(flash_buffer, 0xFF, MAX_CHUNK);
-          UART_ReadExact(&huart2, flash_buffer, size);
-
-          // ===== ALIGN DATA =====
-          memset(aligned_buffer, 0xFF, sizeof(aligned_buffer));
-          memcpy(aligned_buffer, flash_buffer, size);
-
-          uint32_t aligned_size = (size + 3) & ~3;
-
-          // ===== WRITE FLASH =====
-          Flash_Write(address, aligned_buffer, aligned_size);
-          address += aligned_size;
-
-          // ===== ACK DATA =====
-          HAL_UART_Transmit(&huart2, &ack, 1, HAL_MAX_DELAY);
-      }
-
-      // ===== DONE =====
-      HAL_UART_Transmit(&huart2, &ack, 1, HAL_MAX_DELAY);
-      Boot_JumpToApplication(APP_ADDRESS);
+	    // check if any byte available in UART RX register
+	    if (HAL_UART_Receive(&huart2, &rx, 1, HAL_MAX_DELAY) == HAL_OK)
+	    {
+	        if (rx == 'J')
+	        {
+	            Boot_SendAck(&huart2);
+	            Boot_JumpToApplication(APP_ADDRESS);
+	        }
+	        else if (rx == 'F')
+	        {
+	            Boot_HandleFlash(&huart2);
+	        }
+	        else
+	        {
+	            // ignore other bytes
+	        }
+	    }
   }
     /* USER CODE END WHILE */
 
@@ -170,8 +119,7 @@ int main(void)
 }
 
 /**
-  * @brief System Clock Configuration
-  * @retval None
+  * @brief System Clock Configuration  * @retval None
   */
 void SystemClock_Config(void)
 {
@@ -190,9 +138,9 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
-  RCC_OscInitStruct.PLL.PLLM = 16;
-  RCC_OscInitStruct.PLL.PLLN = 336;
-  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV4;
+  RCC_OscInitStruct.PLL.PLLM = 8;
+  RCC_OscInitStruct.PLL.PLLN = 100;
+  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
   RCC_OscInitStruct.PLL.PLLQ = 4;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
@@ -207,7 +155,7 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_3) != HAL_OK)
   {
     Error_Handler();
   }
@@ -280,18 +228,7 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-uint32_t UART_ReadExact(UART_HandleTypeDef *huart, uint8_t *buf, uint32_t len)
-{
-    uint32_t received = 0;
-    while (received < len)
-    {
-        if (HAL_UART_Receive(huart, &buf[received], 1, HAL_MAX_DELAY) == HAL_OK)
-        {
-            received++;
-        }
-    }
-    return received;
-}
+
 /* USER CODE END 4 */
 
 /**

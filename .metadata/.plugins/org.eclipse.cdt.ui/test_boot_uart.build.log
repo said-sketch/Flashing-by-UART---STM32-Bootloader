@@ -1,4 +1,4 @@
-18:04:32 **** Incremental Build of configuration Debug for project test_boot_uart ****
+03:06:21 **** Incremental Build of configuration Debug for project test_boot_uart ****
 make -j8 all 
 arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F411xE -c -I../Core/Inc -I../Drivers/STM32F4xx_HAL_Driver/Inc -I../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "Core/Src/main.o"
 arm-none-eabi-gcc -o "test_boot_uart.elf" @"objects.list"   -mcpu=cortex-m4 -T"C:\Users\HP\Documents\work_space\Flashing_by_UART\test_boot_uart\STM32F411RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="test_boot_uart.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
@@ -8,7 +8,7 @@ arm-none-eabi-objdump -h -S  test_boot_uart.elf  > "test_boot_uart.list"
 arm-none-eabi-objcopy  -O binary  test_boot_uart.elf  "test_boot_uart.bin"
 arm-none-eabi-size   test_boot_uart.elf 
    text	   data	    bss	    dec	    hex	filename
-   8456	     24	   1640	  10120	   2788	test_boot_uart.elf
+   8396	     24	   1640	  10060	   274c	test_boot_uart.elf
 Finished building: default.size.stdout
  
 Finished building: test_boot_uart.bin
@@ -16,5 +16,5 @@ Finished building: test_boot_uart.bin
 Finished building: test_boot_uart.list
  
 
-18:04:32 Build Finished. 0 errors, 0 warnings. (took 750ms)
+03:06:22 Build Finished. 0 errors, 0 warnings. (took 826ms)
 

@@ -46,9 +46,6 @@ UART_HandleTypeDef huart2;
 /* USER CODE BEGIN PV */
 uint8_t rx = 0;
 char *msg = "APPLICATION KHADAMA\r\n";
-char *cmd = "WRONG CMD SEND T\r\n";
-uint8_t ack = 0x79;
-
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -79,6 +76,7 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
+
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -92,7 +90,7 @@ int main(void)
   MX_GPIO_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
-  HAL_UART_Transmit(&huart2, (uint8_t*)msg, strlen(msg), HAL_MAX_DELAY);
+  HAL_UART_Transmit(&huart2, (uint8_t*)msg, strlen(msg), 1000);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -107,9 +105,8 @@ int main(void)
 	        }
 	        else if (rx == 'R')
 	        {
-	            HAL_UART_Transmit(&huart2, (uint8_t*)"JUMPING TO BOOTLOADER\r\n", 23, 1000);
 	            HAL_Delay(100);
-	            NVIC_SystemReset();  // ← software reset, goes back to bootloader
+	            NVIC_SystemReset();  // software reset, goes back to bootloader
 	        }
 	    }
 

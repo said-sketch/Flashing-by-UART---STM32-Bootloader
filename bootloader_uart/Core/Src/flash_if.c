@@ -8,10 +8,16 @@
 #ifndef SRC_FLASH_IF_C_
 #define SRC_FLASH_IF_C_
 
+#include "string.h"
+#include "stdio.h"
 #include "stm32f4xx_hal.h"
 #include "flash_if.h"
 
-
+/* ================= GLOBALS ================= */
+static uint8_t flash_buffer[MAX_CHUNK];
+static uint8_t aligned_buffer[MAX_CHUNK + 4];
+static const uint8_t ACK = BOOT_ACK;
+static const uint8_t ERR = BOOT_ERR;
 /* ================= INTERNAL HELPER ================= */
 static uint32_t Flash_GetSector(uint32_t address)
 {
@@ -24,7 +30,113 @@ static uint32_t Flash_GetSector(uint32_t address)
     if (address < 0x08060000) return FLASH_SECTOR_6;
     return FLASH_SECTOR_7;
 }
+/* ================= BOOTLOADER PROTOCOL ================= */
+static uint32_t Boot_ReceiveCRC(UART_HandleTypeDef *huart)
+{
+    uint8_t crc_buf[4];
+    UART_ReadExact(huart, crc_buf, 4);
+    return crc_buf[0] | (crc_buf[1] << 8) | (crc_buf[2] << 16) | (crc_buf[3] << 24);
+}
 
+static uint8_t Boot_FlashChunks(UART_HandleTypeDef *huart, uint32_t *total_bytes)
+{
+    uint32_t address = APP_ADDRESS;
+    uint8_t  size_buf[2];
+    *total_bytes = 0;
+
+    while (1)
+    {
+        UART_ReadExact(huart, size_buf, 2);
+        uint16_t size = size_buf[0] | (size_buf[1] << 8);
+
+        if (size == END_MARKER)
+        {
+            Boot_SendAck(huart);
+            return 1;
+        }
+
+        if (size > MAX_CHUNK)
+        {
+            Boot_SendErr(huart);
+            continue;
+        }
+
+        Boot_SendAck(huart);
+
+        memset(flash_buffer,  0xFF, MAX_CHUNK);
+        UART_ReadExact(huart, flash_buffer, size);
+
+        memset(aligned_buffer, 0xFF, sizeof(aligned_buffer));
+        memcpy(aligned_buffer, flash_buffer, size);
+
+        uint32_t aligned_size = (size + 3) & ~3;
+        Flash_Write(address, aligned_buffer, aligned_size);
+        address      += aligned_size;
+        *total_bytes += aligned_size;
+
+        Boot_SendAck(huart);
+    }
+}
+
+void Boot_HandleFlash(UART_HandleTypeDef *huart)
+{
+    // Step 1: ACK for F command
+    Boot_SendAck(huart);
+
+    // Step 2: Receive and ACK CRC
+    uint32_t expected_crc = Boot_ReceiveCRC(huart);
+    Boot_SendAck(huart);
+
+    // Step 3: Erase
+    if (Flash_Erase(APP_ADDRESS) != FLASH_OK)
+    {
+        Boot_SendErr(huart);
+        return;
+    }
+    Boot_SendAck(huart);
+
+    // Step 4: Flash chunks
+    uint32_t total_bytes = 0;
+    if (!Boot_FlashChunks(huart, &total_bytes))
+    {
+        Boot_SendErr(huart);
+        return;
+    }
+
+    // Step 5: Verify CRC
+    uint32_t actual_crc = stm32_crc32_sw((uint8_t*)APP_ADDRESS, total_bytes);
+    if (actual_crc == expected_crc)
+    {
+        Boot_SendAck(huart);
+        Boot_JumpToApplication(APP_ADDRESS);
+    }
+    else
+    {
+        Boot_SendErr(huart);
+        Flash_Erase(APP_ADDRESS);
+    }
+}
+/* ================= UART ================= */
+uint32_t UART_ReadExact(UART_HandleTypeDef *huart, uint8_t *buf, uint32_t len)
+{
+    uint32_t received = 0;
+    while (received < len)
+    {
+        if (HAL_UART_Receive(huart, &buf[received], 1, HAL_MAX_DELAY) == HAL_OK)
+            received++;
+    }
+    return received;
+}
+
+void Boot_SendAck(UART_HandleTypeDef *huart)
+{
+    HAL_UART_Transmit(huart, (uint8_t*)&ACK, 1, HAL_MAX_DELAY);
+}
+
+void Boot_SendErr(UART_HandleTypeDef *huart)
+{
+    HAL_UART_Transmit(huart, (uint8_t*)&ERR, 1, HAL_MAX_DELAY);
+}
 /* ================= ERASE FLASH ================= */
 FLASH_Status_t Flash_Erase(uint32_t start_address)
 {
@@ -96,28 +208,69 @@ FLASH_Status_t Flash_Read(uint32_t address, uint8_t *data, uint32_t length)
 }
 /* ================= Jump to app function ================= */
 
-typedef void(*pFunction)(void);
+typedef struct {
+    uint32_t     Initial_SP;
+    void        (*Reset_Handler)(void);
+} AppVecTable_t;
 
 void Boot_JumpToApplication(uint32_t app_address)
 {
-    uint32_t app_reset = *(__IO uint32_t*) (app_address + 4);
-
+    AppVecTable_t *app = (AppVecTable_t *)app_address;
 
     __disable_irq();
     SysTick->CTRL = 0;
-    SysTick->LOAD = 0;
-    SysTick->VAL  = 0;
+    HAL_RCC_DeInit();  // keep it — safer for different clock configs
 
-    SCB->VTOR = app_address;
-    /* Full RCC reset */
-    HAL_RCC_DeInit();
+    // Clear all NVIC registers
+    for (uint8_t i = 0; i < sizeof(NVIC->ICER)/sizeof(NVIC->ICER[0]); i++)
+    {
+        NVIC->ICER[i] = 0xFFFFFFFF;
+        NVIC->ICPR[i] = 0xFFFFFFFF;
+    }
 
-    __DSB();
-    __DMB();
-    __ISB();
-
-    pFunction app_entry = (pFunction)app_reset;
-    app_entry(); // jump
+    __enable_irq();
+    __set_MSP(app->Initial_SP);
+    app->Reset_Handler();
 }
 
+/* ================= CRC32 FLASH ================= */
+uint32_t stm32_crc32_sw(uint8_t *data, uint32_t length)
+{
+    uint32_t crc = 0xFFFFFFFF;
+    uint32_t poly = 0x04C11DB7;
+
+    // Pad length to multiple of 4
+    uint32_t padded_length = length;
+    if (padded_length % 4) padded_length += 4 - (padded_length % 4);
+
+    for (uint32_t i = 0; i < padded_length; i += 4)
+    {
+        uint32_t word = 0xFFFFFFFF; // default padding
+        if (i + 3 < length)
+            word = data[i] | (data[i+1]<<8) | (data[i+2]<<16) | (data[i+3]<<24);
+        else
+        {
+            for(uint32_t j=0;j<4;j++)
+            {
+                if(i+j < length)
+                    ((uint8_t*)&word)[j] = data[i+j];
+                else
+                    ((uint8_t*)&word)[j] = 0xFF;
+            }
+        }
+
+        // feed MSB first
+        for (int bit = 0; bit < 32; bit++)
+        {
+            uint32_t bit_val = (word >> (31 - bit)) & 1;
+            uint32_t c31 = (crc >> 31) & 1;
+            crc <<= 1;
+            if (c31 ^ bit_val)
+                crc ^= poly;
+            crc &= 0xFFFFFFFF;
+        }
+    }
+
+    return crc;
+}
 #endif /* SRC_FLASH_IF_C_ */

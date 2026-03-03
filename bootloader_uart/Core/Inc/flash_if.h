@@ -11,8 +11,14 @@
 #include <stdint.h>
 #include "stm32f4xx_hal.h"
 
-/* ================= FLASH LAYOUT ================= */
-#define APP_ADDRESS 0x08020000UL
+
+
+/* ================= DEFINES ================= */
+#define APP_ADDRESS 	0x08020000UL
+#define MAX_CHUNK       256
+#define BOOT_ACK        0x79
+#define BOOT_ERR        0x1F
+#define END_MARKER      0xFFFF
 /* ================= STATUS ================= */
 typedef enum
 {
@@ -25,4 +31,16 @@ FLASH_Status_t Flash_Erase(uint32_t start_address);
 FLASH_Status_t Flash_Write(uint32_t address, uint8_t *data, uint32_t length);
 FLASH_Status_t Flash_Read(uint32_t address, uint8_t *data, uint32_t length);
 void Boot_JumpToApplication(uint32_t app_address);
+
+/* ================= CRC ================= */
+uint32_t stm32_crc32_sw(uint8_t *data, uint32_t length);
+
+/* ================= UART ================= */
+uint32_t UART_ReadExact(UART_HandleTypeDef *huart, uint8_t *buf, uint32_t len);
+
+/* ================= BOOTLOADER PROTOCOL ================= */
+void Boot_SendAck(UART_HandleTypeDef *huart);
+void Boot_SendErr(UART_HandleTypeDef *huart);
+void Boot_HandleFlash(UART_HandleTypeDef *huart);
+
 #endif /* INC_FLASH_IF_H_ */

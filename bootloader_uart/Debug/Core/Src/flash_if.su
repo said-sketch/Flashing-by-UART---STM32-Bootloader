@@ -1,5 +1,12 @@
-flash_if.c:16:17:Flash_GetSector	16	static
-flash_if.c:29:16:Flash_Erase	56	static
-flash_if.c:56:16:Flash_Write	40	static
-flash_if.c:89:16:Flash_Read	32	static
-flash_if.c:101:6:Boot_JumpToApplication	24	static,ignoring_inline_asm
+flash_if.c:22:17:Flash_GetSector	16	static
+flash_if.c:34:17:Boot_ReceiveCRC	24	static
+flash_if.c:41:16:Boot_FlashChunks	32	static
+flash_if.c:81:6:Boot_HandleFlash	32	static
+flash_if.c:120:10:UART_ReadExact	32	static
+flash_if.c:131:6:Boot_SendAck	16	static
+flash_if.c:136:6:Boot_SendErr	16	static
+flash_if.c:141:16:Flash_Erase	56	static
+flash_if.c:168:16:Flash_Write	40	static
+flash_if.c:201:16:Flash_Read	32	static
+flash_if.c:216:6:Boot_JumpToApplication	32	static,ignoring_inline_asm
+flash_if.c:237:10:stm32_crc32_sw	56	static
