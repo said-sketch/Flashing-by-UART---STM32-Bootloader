@@ -93,7 +93,6 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	    // check if any byte available in UART RX register
 	    if (HAL_UART_Receive(&huart2, &rx, 1, HAL_MAX_DELAY) == HAL_OK)
 	    {
 	        if (rx == 'J')
