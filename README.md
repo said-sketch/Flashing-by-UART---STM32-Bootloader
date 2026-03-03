@@ -56,8 +56,7 @@ Python                  Bootloader
 
 ## Demo
 
-![Flash completed CRC OK](Images/1.PNG)
-
+![Flash completed CRC OK](test_boot_uart/Images/1.PNG)
 > Firmware flashed successfully — 65 chunks transferred, CRC verified, application started and LED toggled.
 
 ---
