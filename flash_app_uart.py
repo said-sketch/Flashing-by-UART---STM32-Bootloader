@@ -152,10 +152,14 @@ def bootloader_mode():
     print("\nBOOTLOADER MODE")
     print("Commands: F = flash, J = jump to app\n")
 
-    while True:
-        cmd = input(">> ").lower()
+    while True:                         # ← 4 spaces indent
+        cmd = input(">> ").strip().upper()
 
-        if cmd == 'f':
+        if cmd not in ['F', 'J']:
+            print("Invalid command! Use F or J only")
+            continue
+
+        if cmd == 'F':
             send_command(b'F')
             if wait_byte(ACK, timeout=3):
                 if flash_firmware():
@@ -166,7 +170,7 @@ def bootloader_mode():
             else:
                 print("No response!")
 
-        elif cmd == 'j':
+        elif cmd == 'J':
             send_command(b'J')
             if wait_byte(ACK, timeout=3):
                 print("Jumping to APP...")
@@ -197,33 +201,31 @@ def application_mode():
             elif user == 'R':
                 send_command(b'R')
                 print("Resetting to bootloader...")
+                time.sleep(0.5)
+                ser.reset_input_buffer()
 
                 start = time.time()
                 synced = False
-
-                while time.time() - start < 5:
-                    ser.write(b'F')
+                while time.time() - start < 10:
+                    ser.write(b'P')      # ← P only here, not F
                     ser.flush()
-                    time.sleep(0.05)
-
+                    time.sleep(0.2)
                     if ser.in_waiting:
                         b = ser.read(1)
-                        print(f"[RX]: {b}")
+                        print(f"[RX RAW]: {b}")
                         if b == ACK:
-                            print("Bootloader ACK received!")
+                            print("Bootloader ready!")
                             synced = True
                             break
 
                 if synced:
-                    bootloader_mode()
+                    bootloader_mode()    # now user gets clean F / J choice
                 else:
                     print("Bootloader not responding!")
-                    bootloader_mode()
                 return
-
+            
     except KeyboardInterrupt:
         print("\nExit")
-
 # ================= MAIN =================
 def main():
     print(f"Connected to {PORT}")
